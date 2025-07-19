@@ -1,11 +1,32 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# سیستم مدیریت قراردادهای پزشکی
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## توضیحات پروژه
+این پروژه یک سیستم مدیریت قراردادهای پزشکی است که با استفاده از فریم‌ورک Laravel توسعه یافته است. این سیستم به مراکز پزشکی و کاربران اجازه می‌دهد تا قراردادها را ایجاد، مدیریت و پیگیری کنند. ویژگی‌های کلیدی شامل مدیریت کاربران، مراکز پزشکی، قراردادها و اعلان‌ها می‌شود.
+
+## ویژگی‌های کلیدی
+- **مدیریت کاربران**: ثبت‌نام، ورود و مدیریت نقش‌ها (مانند مدیر، پزشک، کارمند).
+- **مدیریت مراکز پزشکی**: ایجاد و ویرایش اطلاعات مراکز پزشکی.
+- **مدیریت قراردادها**: ایجاد قراردادهای جدید، آپلود فایل‌های قرارداد، تغییر وضعیت قراردادها و ثبت امضاها.
+- **اعلان‌ها**: ارسال نوتیفیکیشن برای تغییرات وضعیت قرارداد.
+- **امنیت**: رمزنگاری داده‌های پزشکی، لاگینگ فعالیت‌ها و کنترل دسترسی مبتنی بر نقش.
+- **ادغام با وردپرس**: امکان ادغام با سیستم‌های وردپرس برای مدیریت محتوا.
+- **پشتیبانی از زبان فارسی**: رابط کاربری و داده‌ها به زبان فارسی.
+
+## پیش‌نیازها
+- PHP نسخه 8.0 یا بالاتر
+- Composer
+- Node.js و NPM
+- پایگاه داده MySQL یا PostgreSQL
+- Laravel نسخه 10.x
+
+## تست
+برای اجرای تست‌ها، دستور زیر را اجرا کنید:
+```bash
+php artisan test
+```
+
+## مجوز
+این پروژه تحت مجوز MIT منتشر شده است. برای جزئیات بیشتر، فایل LICENSE را ببینید.
 
 ## About Laravel
 
