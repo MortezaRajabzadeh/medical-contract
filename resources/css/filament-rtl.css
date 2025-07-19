@@ -1,0 +1,156 @@
+/* تنظیمات کامل RTL برای Filament */
+
+/* تنظیمات اصلی layout */
+[dir="rtl"] .fi-layout,
+[dir="rtl"] .fi-main,
+[dir="rtl"] .fi-sidebar,
+[dir="rtl"] .fi-topbar {
+    direction: rtl !important;
+}
+
+/* انتقال سایدبار به راست */
+[dir="rtl"] .fi-sidebar {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* تنظیم margin اصلی */
+[dir="rtl"] .fi-main {
+    margin-right: 20rem !important;
+    margin-left: 0 !important;
+}
+
+/* تنظیم آیتم‌های منو */
+[dir="rtl"] .fi-sidebar-nav-item {
+    text-align: right !important;
+}
+
+[dir="rtl"] .fi-sidebar-nav-item-icon {
+    margin-left: 0.5rem !important;
+    margin-right: 0 !important;
+}
+
+/* راست‌چین کردن جداول */
+[dir="rtl"] .fi-ta-table,
+[dir="rtl"] .fi-ta-header-cell,
+[dir="rtl"] .fi-ta-cell {
+    text-align: right !important;
+}
+
+[dir="rtl"] table {
+    direction: rtl !important;
+}
+
+/* راست‌چین کردن فرم‌ها */
+[dir="rtl"] .fi-fo-field-wrp,
+[dir="rtl"] .fi-fo-field-wrp-label {
+    text-align: right !important;
+}
+
+/* راست‌چین کردن دکمه‌ها */
+[dir="rtl"] .fi-btn-group {
+    flex-direction: row-reverse !important;
+}
+
+/* dropdown menu */
+[dir="rtl"] .fi-dropdown-panel {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* breadcrumb */
+[dir="rtl"] .fi-breadcrumbs {
+    flex-direction: row-reverse !important;
+}
+
+/* نوتیفیکیشن‌ها */
+[dir="rtl"] .fi-no-notification {
+    right: 1rem !important;
+    left: auto !important;
+}
+
+/* pagination */
+[dir="rtl"] .fi-ta-pagination {
+    direction: rtl !important;
+    justify-content: flex-start !important;
+}
+
+/* search box */
+[dir="rtl"] .fi-global-search-field {
+    text-align: right !important;
+}
+
+/* modal */
+[dir="rtl"] .fi-modal-content {
+    direction: rtl !important;
+}
+
+/* فیلترها */
+[dir="rtl"] .fi-ta-filters {
+    direction: rtl !important;
+}
+
+/* actions */
+[dir="rtl"] .fi-ta-actions {
+    direction: rtl !important;
+}
+
+/* حالت موبایل */
+@media (max-width: 1024px) {
+    [dir="rtl"] .fi-main {
+        margin-right: 0 !important;
+    }
+    
+    [dir="rtl"] .fi-sidebar {
+        right: -20rem !important;
+    }
+    
+    [dir="rtl"] .fi-sidebar.fi-sidebar-open {
+        right: 0 !important;
+    }
+}
+
+/* تنظیم اضافی برای جداول */
+.filament-tables-table-container {
+    direction: rtl !important;
+}
+
+.filament-tables-header-cell,
+.filament-tables-cell {
+    text-align: right !important;
+}
+
+.filament-tables-actions-cell {
+    text-align: right !important;
+}
+
+.filament-tables-empty-state {
+    direction: rtl !important;
+}
+
+.filament-tables-pagination {
+    direction: rtl !important;
+    justify-content: flex-start !important;
+}
+
+.filament-tables-filters {
+    direction: rtl !important;
+}
+
+/* تنظیمات منو و اجزای کلی */
+.fi-topbar, 
+.fi-sidebar,
+.fi-main {
+    direction: rtl !important;
+}
+
+.fi-sidebar-item {
+    padding-right: 1rem !important;
+    padding-left: 0 !important;
+}
+
+/* تنظیم دکمه‌ها و آیکون‌ها */
+.filament-button-icon.end {
+    margin-right: 0.5rem !important;
+    margin-left: 0 !important;
+}

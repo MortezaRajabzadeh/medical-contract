@@ -1,0 +1,291 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Contract;
+use App\Models\MedicalCenter;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Morilog\Jalali\Jalalian;
+
+class ContractController extends Controller
+{
+    /**
+     * تبدیل اعداد فارسی به انگلیسی
+     *
+     * @param string $string
+     * @return string
+     */
+    protected function convertPersianNumbersToEnglish($string)
+    {
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+        return str_replace($persian, $english, $string);
+    }
+    // وضعیت‌های مختلف قرارداد
+    const STATUS_DRAFT = 'draft'; // پیش‌نویس
+    const STATUS_PENDING = 'pending'; // در انتظار امضا
+    const STATUS_UPLOADED = 'uploaded'; // آپلود شده توسط مرکز درمانی
+    const STATUS_APPROVED = 'approved'; // تأیید شده
+    const STATUS_REJECTED = 'rejected'; // رد شده
+    const STATUS_ACTIVE = 'active'; // فعال
+    const STATUS_EXPIRED = 'expired'; // منقضی شده
+    const STATUS_TERMINATED = 'terminated'; // خاتمه یافته
+
+    // دریافت لیست وضعیت‌ها برای فرم
+    private function getStatusList()
+    {
+        return [
+            self::STATUS_DRAFT => 'پیش‌نویس',
+            self::STATUS_PENDING => 'در انتظار امضا',
+            self::STATUS_UPLOADED => 'آپلود شده توسط مرکز',
+            self::STATUS_APPROVED => 'تأیید شده',
+            self::STATUS_REJECTED => 'رد شده',
+            self::STATUS_ACTIVE => 'فعال',
+            self::STATUS_EXPIRED => 'منقضی شده',
+            self::STATUS_TERMINATED => 'خاتمه یافته',
+        ];
+    }
+    /**
+     * نمایش لیست قراردادها
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        try {
+            $query = Contract::with('medicalCenter');
+
+            // اعمال فیلتر وضعیت
+            if ($request->has('status') && $request->status) {
+                $query->where('status', $request->status);
+            }
+
+            // اعمال فیلتر مرکز درمانی
+            if ($request->has('medical_center_id') && $request->medical_center_id) {
+                $query->where('medical_center_id', $request->medical_center_id);
+            }
+
+            // اعمال فیلتر جستجو
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('contract_number', 'like', "%{$search}%")
+                      ->orWhere('title', 'like', "%{$search}%");
+                });
+            }
+
+            $contracts = $query->latest()->paginate(10);
+            $medicalCenters = MedicalCenter::pluck('name', 'id');
+
+            Log::info('لیست قراردادها با موفقیت بارگذاری شد', [
+                'user_id' => auth()->id() ?? 'مهمان',
+                'count' => $contracts->count(),
+                'filters' => $request->only(['status', 'medical_center_id', 'search']),
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return view('admin.contracts.index', compact('contracts', 'medicalCenters'));
+        } catch (\Exception $e) {
+            Log::error('خطا در بارگذاری لیست قراردادها', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_id' => auth()->id() ?? 'مهمان',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return redirect()->route('admin.dashboard')->with('error', 'خطا در بارگذاری لیست قراردادها. لطفاً مجدداً تلاش کنید.');
+        }
+    }
+
+    /**
+     * نمایش فرم ایجاد قرارداد جدید
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        try {
+            $medicalCenters = MedicalCenter::orderBy('name')->pluck('name', 'id');
+            $statusList = $this->getStatusList();
+
+            Log::info('فرم ایجاد قرارداد جدید با موفقیت بارگذاری شد', [
+                'user_id' => auth()->id() ?? 'مهمان',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return view('admin.contracts.create', compact('medicalCenters', 'statusList'));
+        } catch (\Exception $e) {
+            Log::error('خطا در بارگذاری فرم ایجاد قرارداد جدید', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_id' => auth()->id() ?? 'مهمان',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return redirect()->route('admin.contracts.index')->with('error', 'خطا در بارگذاری فرم ایجاد قرارداد جدید. لطفاً مجدداً تلاش کنید.');
+        }
+    }
+
+    /**
+     * ذخیره قرارداد جدید در دیتابیس
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store(Request $request)
+    {
+        try {
+            // تبدیل تاریخ‌های جلالی به میلادی
+            $requestData = $request->all();
+            
+            // ابتدا همه فیلدهای تاریخ را از فارسی به انگلیسی تبدیل می‌کنیم
+            foreach(['start_date', 'end_date'] as $dateField) {
+                if (!empty($requestData[$dateField])) {
+                    $requestData[$dateField] = $this->convertPersianNumbersToEnglish($requestData[$dateField]);
+                    
+                    // لاگ برای ردیابی
+                    Log::info("تبدیل اعداد فارسی به انگلیسی برای {$dateField}", [
+                        'field' => $dateField, 
+                        'value' => $requestData[$dateField],
+                        'user_id' => Auth::id() ?? 'مهمان',
+                        'timestamp' => now()->format('Y-m-d H:i:s')
+                    ]);
+                }
+            }
+
+            // تبدیل تاریخ شروع
+            if (!empty($requestData['start_date'])) {
+                try {
+                    $startDateJalali = $requestData['start_date'];
+                    $requestData['start_date'] = Jalalian::fromFormat('Y/m/d', $startDateJalali)->toCarbon()->format('Y-m-d');
+                    
+                    Log::info('تبدیل موفق تاریخ شروع جلالی به میلادی', [
+                        'jalali_date' => $startDateJalali,
+                        'gregorian_date' => $requestData['start_date'],
+                        'user_id' => Auth::id() ?? 'مهمان',
+                        'timestamp' => now()->format('Y-m-d H:i:s')
+                    ]);
+                    
+                } catch (\Exception $e) {
+                    Log::warning('خطا در تبدیل تاریخ شروع جلالی به میلادی', [
+                        'date' => $requestData['start_date'],
+                        'error' => $e->getMessage(),
+                        'user_id' => Auth::id() ?? 'مهمان',
+                        'timestamp' => now()->format('Y-m-d H:i:s')
+                    ]);
+                    // حفظ تاریخ اصلی برای اعتبارسنجی
+                }
+            }
+
+            // تبدیل تاریخ پایان
+            if (!empty($requestData['end_date'])) {
+                try {
+                    $endDateJalali = $requestData['end_date'];
+                    $requestData['end_date'] = Jalalian::fromFormat('Y/m/d', $endDateJalali)->toCarbon()->format('Y-m-d');
+                    
+                    Log::info('تبدیل موفق تاریخ پایان جلالی به میلادی', [
+                        'jalali_date' => $endDateJalali,
+                        'gregorian_date' => $requestData['end_date'],
+                        'user_id' => Auth::id() ?? 'مهمان',
+                        'timestamp' => now()->format('Y-m-d H:i:s')
+                    ]);
+                    
+                } catch (\Exception $e) {
+                    Log::warning('خطا در تبدیل تاریخ پایان جلالی به میلادی', [
+                        'date' => $requestData['end_date'],
+                        'error' => $e->getMessage(),
+                        'user_id' => Auth::id() ?? 'مهمان',
+                        'timestamp' => now()->format('Y-m-d H:i:s')
+                    ]);
+                    // حفظ تاریخ اصلی برای اعتبارسنجی
+                }
+            }
+
+            $validator = Validator::make($requestData, [
+                'medical_center_id' => 'required|exists:medical_centers,id',
+                'contract_number' => 'required|string|max:50|unique:contracts',
+                'title' => 'required|string|max:255',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'status' => 'required|in:' . implode(',', array_keys($this->getStatusList())),
+                'description' => 'nullable|string|max:1000',
+            ], [
+                'medical_center_id.required' => 'انتخاب مرکز درمانی الزامی است.',
+                'medical_center_id.exists' => 'مرکز درمانی انتخاب شده معتبر نیست.',
+                'contract_number.required' => 'شماره قرارداد الزامی است.',
+                'contract_number.unique' => 'این شماره قرارداد قبلاً ثبت شده است.',
+                'title.required' => 'عنوان قرارداد الزامی است.',
+                'start_date.required' => 'تاریخ شروع الزامی است.',
+                'start_date.date' => 'فرمت تاریخ شروع نامعتبر است.',
+                'end_date.required' => 'تاریخ پایان الزامی است.',
+                'end_date.date' => 'فرمت تاریخ پایان نامعتبر است.',
+                'end_date.after_or_equal' => 'تاریخ پایان باید بعد از تاریخ شروع باشد.',
+                'status.required' => 'وضعیت قرارداد الزامی است.',
+                'status.in' => 'وضعیت قرارداد معتبر نیست.',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $contract = new Contract();
+            $contract->medical_center_id = $requestData['medical_center_id'];
+            $contract->contract_number = $requestData['contract_number'];
+            $contract->title = $requestData['title'];
+            $contract->start_date = $requestData['start_date'];
+            $contract->end_date = $requestData['end_date'];
+            // فیلد signed_date حذف شد
+            // فیلد amount حذف شد
+            $contract->status = $requestData['status'];
+            
+            // مقادیر پیش‌فرض برای فیلدهای حذف شده
+            $contract->signed_date = null;
+            $contract->amount = 0;
+            $contract->description = $requestData['description'] ?? null;
+            $contract->created_by = Auth::id();
+
+            // آپلود فایل قرارداد اگر وجود داشته باشد
+            if ($request->hasFile('contract_file')) {
+                $file = $request->file('contract_file');
+                $fileName = Str::slug($contract->contract_number) . '_' . time() . '.' . $file->extension();
+                $filePath = $file->storeAs('contracts', $fileName, 'public');
+                $contract->file_path = $filePath;
+            }
+
+            $contract->save();
+
+            Log::info('قرارداد جدید با موفقیت ایجاد شد', [
+                'contract_id' => $contract->id,
+                'contract_number' => $contract->contract_number,
+                'user_id' => Auth::id() ?? 'مهمان',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return redirect()->route('admin.contracts.index')
+                ->with('success', 'قرارداد جدید با موفقیت ایجاد شد.');
+        } catch (\Exception $e) {
+            Log::error('خطا در ایجاد قرارداد جدید', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_id' => Auth::id() ?? 'مهمان',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'خطا در ایجاد قرارداد جدید: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+}
