@@ -10,12 +10,8 @@
     <!-- فونت‌ها -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
 
-    <!-- استایل‌های CSS و JS اصلی (مستقیم بدون Vite) -->
-    <link rel="stylesheet" href="{{ asset('build/assets/app--gi-JHlW.css') }}">
-
-    <!-- لود مستقیم Alpine.js قبل از script اصلی -->
-
-    <script src="{{ asset('build/assets/app-DNxiirP_.js') }}" defer></script>
+    <!-- استایل‌های CSS و JS اصلی با Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- استایل‌های Livewire 3 بعد از Vite -->
     @livewireStyles
