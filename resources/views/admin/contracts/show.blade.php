@@ -72,9 +72,11 @@
                                     @elseif($contract->status === 'pending')
                                         <span class="badge bg-warning">در انتظار امضا</span>
                                     @elseif($contract->status === 'uploaded')
-                                        <span class="badge bg-info">آپلود شده توسط مرکز</span>
+                                        <span class="badge bg-info">بارگزاری شده</span>
+                                    @elseif($contract->status === 'under_review')
+                                        <span class="badge bg-indigo">در دست بررسی</span>
                                     @elseif($contract->status === 'approved')
-                                        <span class="badge bg-success">تأیید شده</span>
+                                        <span class="badge bg-success">تایید نهایی</span>
                                     @elseif($contract->status === 'rejected')
                                         <span class="badge bg-danger">رد شده</span>
                                     @elseif($contract->status === 'active')
@@ -389,8 +391,8 @@
                             <option value="">انتخاب کنید...</option>
                             @if($contract->status !== 'draft')<option value="draft">پیش‌نویس</option>@endif
                             @if($contract->status !== 'pending')<option value="pending">در انتظار امضا</option>@endif
-                            @if($contract->status !== 'uploaded')<option value="uploaded">آپلود شده توسط مرکز</option>@endif
-                            @if($contract->status !== 'approved')<option value="approved">تأیید شده</option>@endif
+                            @if($contract->status !== 'uploaded')<option value="uploaded">بارگزاری شده</option>@endif
+                            @if($contract->status !== 'approved')<option value="approved">تایید نهایی</option>@endif
                             @if($contract->status !== 'rejected')<option value="rejected">رد شده</option>@endif
                             @if($contract->status !== 'active')<option value="active">فعال</option>@endif
                             @if($contract->status !== 'expired')<option value="expired">منقضی شده</option>@endif

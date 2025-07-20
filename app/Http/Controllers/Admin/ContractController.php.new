@@ -42,14 +42,10 @@ class ContractController extends Controller
     private function getStatusList()
     {
         return [
-            self::STATUS_DRAFT => 'پیش‌نویس',
-            self::STATUS_PENDING => 'در انتظار امضا',
-            self::STATUS_UPLOADED => 'آپلود شده توسط مرکز',
-            self::STATUS_APPROVED => 'تأیید شده',
-            self::STATUS_REJECTED => 'رد شده',
-            self::STATUS_ACTIVE => 'فعال',
-            self::STATUS_EXPIRED => 'منقضی شده',
-            self::STATUS_TERMINATED => 'خاتمه یافته',
+            'pending' => 'در انتظار امضا',
+            'uploaded' => 'بارگزاری شده',
+            'under_review' => 'در دست بررسی',
+            'approved' => 'تایید نهایی',
         ];
     }
     /**

@@ -56,7 +56,7 @@
                         @endif
                         
                         <!-- دکمه دانلود فایل -->
-                        <a href="{{ route('contracts.download.signed', ['id' => $contractId]) }}" 
+                        <a href="{{ route('medical-center.contracts.download.signed', ['id' => $contractId]) }}" 
                            class="px-3 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             دانلود
                         </a>
@@ -87,8 +87,9 @@
                         x-on:livewire-upload-finish="uploading = false; progress = 0"
                         x-on:livewire-upload-progress="progress = $event.detail.progress">
                         
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
                             :class="{ 'border-blue-500 bg-blue-50': dragOver }"
+                            @click="$refs.fileInput.click()"
                             @dragover.prevent="dragOver = true"
                             @dragleave.prevent="dragOver = false"
                             @drop.prevent="
@@ -104,12 +105,16 @@
                             </svg>
                             
                             <p class="mt-2 text-sm text-gray-600">
-                                <span class="font-medium">برای آپلود کلیک کنید</span> یا فایل را اینجا بکشید و رها کنید
+                                <span class="font-medium text-blue-600">برای آپلود کلیک کنید</span> یا فایل را اینجا بکشید و رها کنید
                             </p>
                             <p class="text-xs text-gray-500">فایل PDF تا حداکثر 10MB</p>
                             
-                            <input type="file" wire:model="signedFile" 
-                                class="hidden" accept=".pdf">
+                            <input type="file" 
+                                   wire:model="signedFile" 
+                                   x-ref="fileInput"
+                                   class="hidden" 
+                                   accept=".pdf"
+                                   @change="if ($event.target.files.length > 0) { $wire.upload('signedFile', $event.target.files[0]); }">
                         </div>
                         
                         <!-- نمایش پیشرفت آپلود -->
@@ -118,7 +123,17 @@
                                 <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
                                     :style="`width: ${progress}%`"></div>
                             </div>
-                            <p class="text-sm text-gray-600 mt-2 text-left">در حال آپلود... <span x-text="progress"></span>%</p>
+                            <p class="text-sm text-gray-600 mt-2 text-center">در حال آپلود... <span x-text="progress"></span>%</p>
+                        </div>
+                        
+                        <!-- نمایش نام فایل انتخاب شده -->
+                        <div x-show="!uploading && $wire.signedFile" x-transition class="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                            <div class="flex items-center justify-center text-green-700">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-sm">فایل انتخاب شد و آماده آپلود است</span>
+                            </div>
                         </div>
                     </div>
                     @error('signedFile') <span class="text-red-500 text-sm block text-right">{{ $message }}</span> @enderror
@@ -126,7 +141,7 @@
 
                 <div class="flex justify-end space-x-4">
                     <button type="submit" 
-                            class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             wire:loading.attr="disabled"
                             wire:target="save">
                         <span wire:loading.remove wire:target="save">آپلود قرارداد امضا شده</span>

@@ -153,12 +153,10 @@ class ContractResource extends Resource
                         Select::make('status')
                             ->label('وضعیت')
                             ->options([
-                                'pending' => 'در انتظار',
-                                'uploaded' => 'بارگذاری شده',
-                                'approved' => 'تایید شده',
-                                'active' => 'فعال',
-                                'expired' => 'منقضی شده',
-                                'terminated' => 'لغو شده',
+                                'pending' => 'در انتظار امضا',
+                                'uploaded' => 'بارگزاری شده',
+                                'under_review' => 'در دست بررسی',
+                                'approved' => 'تایید نهایی',
                             ])
                             ->required(),
                             

@@ -10,4 +10,9 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    server: {
+        host: '127.0.0.1',  // یا 'localhost' برای جلوگیری از IPv6
+        port: 5173,
+        strictPort: true,  // اگر پورت مشغول بود، خطا بده
+    },
 });

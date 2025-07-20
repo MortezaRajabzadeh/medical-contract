@@ -38,23 +38,17 @@
                                 @endswitch">
                                 @switch($contract->status)
                                     @case('pending')
-                                        در انتظار
-                                        @break
+                                        در انتظار امضا
+                                    @break
                                     @case('uploaded')
-                                        بارگذاری شده
-                                        @break
+                                        بارگزاری شده
+                                    @break
+                                    @case('under_review')
+                                        در دست بررسی
+                                    @break
                                     @case('approved')
-                                        تایید شده
-                                        @break
-                                    @case('active')
-                                        فعال
-                                        @break
-                                    @case('expired')
-                                        منقضی شده
-                                        @break
-                                    @case('terminated')
-                                        خاتمه یافته
-                                        @break
+                                        تایید نهایی
+                                    @break
                                     @default
                                         نامشخص
                                 @endswitch

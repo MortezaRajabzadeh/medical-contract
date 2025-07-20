@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Validate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Log;
@@ -76,7 +77,7 @@ class ContractUpload extends Component
             $contract = Contract::findOrFail($this->contractId);
             
             // بررسی دسترسی مرکز درمانی به این قرارداد
-            if (auth()->user()->medical_center_id !== $contract->medical_center_id) {
+            if (Auth::user()->medical_center_id !== $contract->medical_center_id) {
                 $this->addError('access', 'شما مجوز دسترسی به این قرارداد را ندارید.');
                 return;
             }
@@ -94,7 +95,7 @@ class ContractUpload extends Component
         } catch (\Exception $e) {
             Log::error('خطا در بارگذاری اطلاعات قرارداد: ' . $e->getMessage(), [
                 'contract_id' => $this->contractId,
-                'user_id' => auth()->id()
+                'user_id' => Auth::id()
             ]);
             $this->addError('contract', 'خطا در بارگذاری اطلاعات قرارداد. لطفا مجددا تلاش کنید.');
         }
@@ -127,7 +128,7 @@ class ContractUpload extends Component
             // ایجاد رکورد قرارداد
             Contract::create([
                 'contract_number' => $this->generateContractNumber(),
-                'medical_center_id' => auth()->user()->medical_center_id,
+                'medical_center_id' => Auth::user()->medical_center_id,
                 'title' => $this->title,
                 'description' => $this->description,
                 'contract_type' => $this->contractType,
@@ -139,20 +140,20 @@ class ContractUpload extends Component
                 'original_filename' => $this->contractFile->getClientOriginalName(),
                 'file_hash' => $fileHash,
                 'file_size' => $this->contractFile->getSize(),
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
                 'status' => 'pending',
             ]);
 
-            // ثبت فعالیت
-            activity()
-                ->causedBy(auth()->user())
-                ->log('قرارداد جدید آپلود شد: ' . $this->title);
+            // ثبت فعالیت - commented out until spatie/laravel-activitylog is installed
+            // activity()
+            //     ->causedBy(auth()->user())
+            //     ->log('قرارداد جدید آپلود شد: ' . $this->title);
 
             session()->flash('message', 'قرارداد با موفقیت آپلود شد!');
             $this->reset(['contractFile', 'title', 'description', 'contractType', 'vendorName', 'contractValue', 'startDate', 'endDate']);
         } catch (\Exception $e) {
             Log::error('خطا در ذخیره قرارداد جدید: ' . $e->getMessage(), [
-                'user_id' => auth()->id()
+                'user_id' => Auth::id()
             ]);
             session()->flash('error', 'خطا در آپلود قرارداد. لطفا مجددا تلاش کنید.');
         }
@@ -170,7 +171,7 @@ class ContractUpload extends Component
             $contract = Contract::findOrFail($this->contractId);
             
             // بررسی دسترسی مرکز درمانی به این قرارداد
-            if (auth()->user()->medical_center_id !== $contract->medical_center_id) {
+            if (Auth::user()->medical_center_id !== $contract->medical_center_id) {
                 $this->addError('access', 'شما مجوز دسترسی به این قرارداد را ندارید.');
                 return;
             }
@@ -195,25 +196,25 @@ class ContractUpload extends Component
                 'signed_original_filename' => $this->signedFile->getClientOriginalName(),
                 'signed_file_hash' => $fileHash,
                 'signed_file_size' => $this->signedFile->getSize(),
-                'signed_at' => now(),
-                'status' => 'review', // تغییر وضعیت به "در حال بررسی"
+                'signed_date' => now(), // اضافه کردن تاریخ امضا
+                'status' => 'signed', // تغییر وضعیت به "امضا شده"
             ]);
             
-            // ثبت فعالیت
-            activity()
-                ->performedOn($contract)
-                ->causedBy(auth()->user())
-                ->log('قرارداد امضا شده آپلود شد');
+            // ثبت فعالیت - commented out until spatie/laravel-activitylog is installed
+            // activity()
+            //     ->performedOn($contract)
+            //     ->causedBy(auth()->user())
+            //     ->log('قرارداد امضا شده آپلود شد');
                 
             // بارگذاری مجدد اطلاعات قرارداد
             $this->loadContractData();
             $this->reset(['signedFile']);
             
-            session()->flash('message', 'قرارداد امضا شده با موفقیت آپلود شد و در انتظار بررسی می‌باشد.');
+            session()->flash('message', 'قرارداد امضا شده با موفقیت آپلود شد.');
         } catch (\Exception $e) {
             Log::error('خطا در آپلود قرارداد امضا شده: ' . $e->getMessage(), [
                 'contract_id' => $this->contractId,
-                'user_id' => auth()->id()
+                'user_id' => Auth::id()
             ]);
             session()->flash('error', 'خطا در آپلود قرارداد امضا شده. لطفا مجددا تلاش کنید.');
         }
@@ -226,7 +227,7 @@ class ContractUpload extends Component
             $contract = Contract::findOrFail($this->contractId);
             
             // بررسی دسترسی مرکز درمانی به این قرارداد
-            if (auth()->user()->medical_center_id !== $contract->medical_center_id) {
+            if (Auth::user()->medical_center_id !== $contract->medical_center_id) {
                 $this->addError('access', 'شما مجوز دسترسی به این قرارداد را ندارید.');
                 return;
             }
@@ -252,11 +253,11 @@ class ContractUpload extends Component
                 'status' => 'pending', // تغییر وضعیت به "در انتظار امضاء"
             ]);
             
-            // ثبت فعالیت
-            activity()
-                ->performedOn($contract)
-                ->causedBy(auth()->user())
-                ->log('قرارداد امضا شده حذف شد');
+            // ثبت فعالیت - commented out until spatie/laravel-activitylog is installed
+            // activity()
+            //     ->performedOn($contract)
+            //     ->causedBy(auth()->user())
+            //     ->log('قرارداد امضا شده حذف شد');
                 
             // بارگذاری مجدد اطلاعات قرارداد
             $this->loadContractData();
@@ -265,7 +266,7 @@ class ContractUpload extends Component
         } catch (\Exception $e) {
             Log::error('خطا در حذف قرارداد امضا شده: ' . $e->getMessage(), [
                 'contract_id' => $this->contractId,
-                'user_id' => auth()->id()
+                'user_id' => Auth::id()
             ]);
             session()->flash('error', 'خطا در حذف قرارداد امضا شده. لطفا مجددا تلاش کنید.');
         }
@@ -283,7 +284,7 @@ class ContractUpload extends Component
 
     private function generateContractNumber()
     {
-        $center = auth()->user()->medicalCenter;
+        $center = Auth::user()->medicalCenter;
         $year = date('Y');
         $sequence = Contract::where('medical_center_id', $center->id)
             ->whereYear('created_at', $year)

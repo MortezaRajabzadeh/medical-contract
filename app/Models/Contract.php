@@ -116,12 +116,10 @@ class Contract extends Model
     public function getStatusBadgeAttribute(): string
     {
         return match($this->status) {
-            'pending' => '<span class="px-2 py-1 rounded-full text-xs text-yellow-800 bg-yellow-100">Pending Signature</span>',
-            'uploaded' => '<span class="px-2 py-1 rounded-full text-xs text-blue-800 bg-blue-100">In Review</span>',
-            'approved' => '<span class="px-2 py-1 rounded-full text-xs text-green-800 bg-green-100">Approved</span>',
-            'active' => '<span class="px-2 py-1 rounded-full text-xs text-green-800 bg-green-100">Active</span>',
-            'expired' => '<span class="px-2 py-1 rounded-full text-xs text-red-800 bg-red-100">Expired</span>',
-            'terminated' => '<span class="px-2 py-1 rounded-full text-xs text-red-800 bg-red-100">Terminated</span>',
+            'pending' => '<span class="px-2 py-1 rounded-full text-xs text-yellow-800 bg-yellow-100">در انتظار امضا</span>',
+            'uploaded' => '<span class="px-2 py-1 rounded-full text-xs text-blue-800 bg-blue-100">بارگزاری شده</span>',
+            'under_review' => '<span class="px-2 py-1 rounded-full text-xs text-indigo-800 bg-indigo-100">در دست بررسی</span>',
+            'approved' => '<span class="px-2 py-1 rounded-full text-xs text-green-800 bg-green-100">تایید نهایی</span>',
             default => '<span class="px-2 py-1 rounded-full text-xs text-gray-800 bg-gray-100">' . ucfirst($this->status) . '</span>',
         };
     }

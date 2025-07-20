@@ -89,22 +89,10 @@ class ContractController extends Controller
             $contracts = $query->latest()->paginate(10);
             $medicalCenters = MedicalCenter::pluck('name', 'id');
 
-            Log::info('لیست قراردادها با موفقیت بارگذاری شد', [
-                'user_id' => auth()->id() ?? 'مهمان',
-                'count' => $contracts->count(),
-                'filters' => $request->only(['status', 'medical_center_id', 'search']),
-                'timestamp' => now()->format('Y-m-d H:i:s')
-            ]);
+
 
             return view('admin.contracts.index', compact('contracts', 'medicalCenters'));
         } catch (\Exception $e) {
-            Log::error('خطا در بارگذاری لیست قراردادها', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'user_id' => auth()->id() ?? 'مهمان',
-                'timestamp' => now()->format('Y-m-d H:i:s')
-            ]);
 
             return redirect()->route('admin.dashboard')->with('error', 'خطا در بارگذاری لیست قراردادها. لطفاً مجدداً تلاش کنید.');
         }
